@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>alarm-clock</title>
+    <style>
+        body {
+            margin: 0;
+        }
+
+        .container {
+            width: 100%;
+            height: 100vh;
+            background-color: blueviolet;
+        }
+
+        .d-flex {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .box {
+            background-color: azure;
+            justify-content: center;
+            align-content: center;
+            width: 45%;
+            flex-direction: column;
+            overflow-y: scroll;
+
+        }
+
+        .setAlarm {
+            flex-direction: row;
+        }
+
+        .setAlarm div {
+            /* background-color: blue; */
+            width: 20%;
+        }
+
+        .setAlarm input {
+            width: 30%;
+            text-decoration: none;
+        }
+
+        .setAlarm button {
+            padding: 10px;
+            border-radius: 5px;
+            background-color: rgb(167, 167, 255);
+            border-color: rgb(73, 73, 208);
+        }
+
+        .setAlarm button:hover {
+            background-color: rgb(54, 54, 163);
+        }
+
+        .alarm-list {
+            max-height: 30vh;
+            scroll-behavior: auto;
+        }
+
+        .allAlarms {
+            border: 2px solid darkgray;
+            border-radius: 10px;
+            margin: 5px;
+            width: 100%;
+            height: 50px;
+        }
+
+        .m-5 {
+            margin: 25px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container d-flex">
+        <div class="box d-flex">
+            <div class="img">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT6pYI6uOv8AuEc2Mi3G6bJGfuPTwDNtnEMlcLtwpgU_QlS88_8t5zn_mCdAmSxm8CFB3g&usqp=CAU"
+                    alt="">
+            </div>
+            <div class="timer">
+                <h1 id="time">06:25:54 AM</h1>
+            </div>
+            <div class="setAlarm d-flex">
+                <div class="hour">
+                    <p>hour</p>
+                    <input id="hour" type="text">
+                </div>
+                <div class="min">
+                    <p>min</p>
+                    <input id="min" type="text">
+                </div>
+                <div class="AMPM">
+                    <p>am/pm</p>
+                    <select name="ampm" id="ampm">
+                        <option value="AM">AM</option>
+                        <option value="PM">PM</option>
+                    </select>
+                </div>
+                <div class="day">
+                    <p>week day</p>
+                    <select name="day" id="day">
+                        <option value="mon">mon</option>
+                        <option value="tue">tue</option>
+                        <option value="wed">wed</option>
+                        <option value="thu">thu</option>
+                        <option value="fri">fri</option>
+                        <option value="sat">sat</option>
+                        <option value="sun">sun</option>
+                    </select>
+                </div>
+                <div class="btn">
+                    <button onclick={setAlarm()}>set alarm</button>
+                </div>
+            </div>
+            <div class="alarm-list">
+                <h3>your alarms : </h3>
+                <div id="list-item">
+                    <div class="allAlarms d-flex">
+                        <div class="m-5">
+                            <p>6:45 am</p>
+                        </div>
+                        <div class="m-5">
+                            <p>mon</p>
+                        </div>
+                        <div class="m-5">
+                            <button onclick={removeAlarm()}>delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <audio id="mySound" src="./Alarm-ringtone.mp3" allow="autoplay"></audio>
+        </div>
+    </div>
+    <script>
+        var alarms = []
+        const existAlarm = localStorage.getItem("alrmitem");
+        if (existAlarm) {
+            alarms = JSON.parse(localStorage.getItem("alrmitem"))
+        }
+
+
+
+        const tmr = setInterval(() => {
+            var hour = new Date(Date.now()).getHours()
+            var min = new Date(Date.now()).getMinutes()
+            var sec = new Date(Date.now()).getSeconds()
+            var day = new Date(Date.now()).getDay();
+            var st = String(hour < 13 ? hour : (Number(hour) - 12)) + ":" + min + ":" + sec
+            var timer = document.getElementById('time').innerText = st
+            //   set ring alarm function
+            switch (day) {
+                case 0:
+                    day = "sun"
+                    break;
+                case 1:
+                    day = "mon"
+                    break;
+                case 2:
+                    day = "tue"
+                    break;
+                case 3:
+                    day = "wed"
+                    break;
+                case 4:
+                    day = "thu"
+                    break;
+                case 5:
+                    day = "fri"
+                    break;
+                default:
+                    day = "sat"
+            }
+            var isSnooze = false;
+            for (var obj of alarms) {
+                var ampm = "AM";
+                var hour1 = hour
+                if (hour > 12) {
+                    ampm = "PM"
+                    hour1 = hour - 12
+                }
+                if (obj.hour == hour1 && obj.min == min && obj.day == day && obj.ampm == ampm && sec == 1) {
+                    var snoozeObj = {
+                            hour: obj.hour,
+                            min: obj.min,
+                            ampm: obj.ampm,
+                            day: obj.day,
+                        }
+                    localStorage.setItem("snoozeItem", JSON.stringify(snoozeObj));
+                    isSnooze = true;
+                }
+            }
+            const objj = JSON.parse(localStorage.getItem("snoozeItem"))
+            // localStorage.removeItem("snoozeItem")
+        
+            if (objj) {
+                const obj = JSON.parse(localStorage.getItem("snoozeItem"))
+                var ampm = "AM";
+                var hour2 = hour
+                if (hour > 12) {
+                    ampm = "PM"
+                    hour2 = hour - 12
+                }
+                console.log(hour2, min, day, ampm, sec)
+                console.log(obj)
+                if (obj.hour == hour2 && obj.min == min && obj.day == day && obj.ampm == ampm) {
+                    var player = document.getElementById('mySound');
+                    player.play();
+                    if (confirm("Are you want to snooze alarm for 5 min..⏰")) {
+                        var snoozeObj;
+                        player.pause();
+                        if (obj.min < 55) {
+                            snoozeObj = {
+                                hour: obj.hour,
+                                min:String(Number(obj.min) + 2),
+                                ampm: obj.ampm,
+                                day: obj.day,
+                            }
+                        } else {
+                            snoozeObj = {
+                                hour: String(Number(obj.hour) + 1),
+                                min: String(Number(obj.min) - 55),
+                                ampm: obj.ampm,
+                                day: obj.day,
+                            }
+                        }
+                        localStorage.setItem("snoozeItem", JSON.stringify(snoozeObj));
+                    } else {
+                        localStorage.removeItem("snoozeItem");
+                        player.pause();
+                    }
+                }
+            }
+        }, 1000)
+
+        var removeAlarm = (index) => {
+            alarms.splice(index, 1);
+            localStorage.setItem("alrmitem", JSON.stringify(alarms));
+            displayAlarms();
+        }
+        var displayAlarms = () => {
+            var allAlarms = JSON.parse(localStorage.getItem("alrmitem"))
+            console.log(allAlarms)
+            let list = document.getElementById("list-item");
+            list.innerHTML = "";
+            allAlarms.map((ele, index, removeAlarm) => {
+                let div = document.createElement("div");
+                div.innerHTML = `
+                    <div class="allAlarms d-flex">
+                        <div class="m-5">
+                            <p>${ele.hour}:${ele.min} ${ele.ampm}</p>
+                        </div>
+                        <div class="m-5">
+                            <p>${ele.day}</p>
+                        </div>
+                        <div class="m-5">
+                            <button onclick={removeAlarm(${index})}>delete</button>
+                        </div>
+                    </div>
+                `
+                list.appendChild(div);
+            })
+        }
+        displayAlarms();
+
+
+
+        function alarm(hour, min, ampm, day) {
+            this.hour = hour
+            this.min = min
+            this.ampm = ampm
+            this.day = day
+        }
+        const setAlarm = () => {
+            console.log("hiii")
+            const hour = document.getElementById('hour').value
+            document.getElementById('hour').value = ""
+            const min = document.getElementById('min').value
+            document.getElementById('min').value = ""
+            const ampm = document.getElementById('ampm').value
+            document.getElementById('ampm').value = ""
+            const day = document.getElementById('day').value
+            document.getElementById('day').value = ""
+            console.log(hour, min, ampm, day)
+
+            const alrm = new alarm(hour, min, ampm, day);
+            alarms.push(alrm);
+            console.log(alarms)
+            localStorage.setItem("alrmitem", JSON.stringify(alarms));
+            displayAlarms();
+        }
+
+    </script>
+</body>
+
+</html>
